@@ -1,0 +1,76 @@
+{
+  "features": [
+    "months_as_customer",
+    "age",
+    "policy_deductable",
+    "policy_annual_premium",
+    "umbrella_limit",
+    "capital_gains",
+    "capital_loss",
+    "incident_hour_of_the_day",
+    "number_of_vehicles_involved",
+    "bodily_injuries",
+    "witnesses",
+    "injury_claim",
+    "property_claim",
+    "vehicle_claim",
+    "total_claim_amount",
+    "police_report_available",
+    "insured_sex",
+    "insured_education_level",
+    "insured_occupation",
+    "incident_type",
+    "collision_type",
+    "incident_severity",
+    "authorities_contacted",
+    "policy_state",
+    "insured_hobbies",
+    "auto_make",
+    "auto_year"
+  ],
+  "top_features": [
+    [
+      "injury_claim",
+      0.27560403078814844
+    ],
+    [
+      "months_as_customer",
+      0.2711053962989476
+    ],
+    [
+      "bodily_injuries",
+      0.11565336235053285
+    ],
+    [
+      "total_claim_amount",
+      0.10793858017020358
+    ],
+    [
+      "incident_hour_of_the_day",
+      0.08508305684629738
+    ],
+    [
+      "number_of_vehicles_involved",
+      0.07527899671553374
+    ],
+    [
+      "incident_severity",
+      0.0419670700616951
+    ],
+    [
+      "witnesses",
+      0.01772447623434784
+    ],
+    [
+      "police_report_available",
+      0.007834724443587559
+    ],
+    [
+      "capital_loss",
+      0.00046593732616044585
+    ]
+  ],
+  "accuracy": 1.0,
+  "f1_score": 1.0,
+  "model_type": "RandomForestClassifier"
+}

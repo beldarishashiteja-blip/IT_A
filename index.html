@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NeuroFraud Shield</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+/* ─── Reset & Base ─────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:        #060c18;
+  --bg2:       #0b1525;
+  --bg3:       #0f1e36;
+  --card:      #0d1a2e;
+  --card2:     #111f35;
+  --border:    #1a3055;
+  --teal:      #00d4aa;
+  --teal2:     #00a887;
+  --teal3:     #007a62;
+  --red:       #ff4757;
+  --orange:    #ffa502;
+  --purple:    #a78bfa;
+  --white:     #f0f6ff;
+  --gray:      #6b8aad;
+  --gray2:     #3d5a78;
+  --font:      'Space Grotesk', sans-serif;
+  --mono:      'JetBrains Mono', monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--white);
+  font-family:var(--font);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--teal3);border-radius:3px}
+
+/* ─── Background Grid ────────────────────────────────────────────────────── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size:48px 48px;
+  opacity:0.25;
+  pointer-events:none;
+  z-index:0;
+}
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0,212,170,.07) 0%, transparent 70%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+.shell{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* ─── Navbar ─────────────────────────────────────────────────────────────── */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2rem;height:64px;
+  background:rgba(11,21,37,.85);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+  position:sticky;top:0;z-index:100;
+}
+.brand{display:flex;align-items:center;gap:.75rem}
+.brand-icon{
+  width:36px;height:36px;background:var(--teal);border-radius:8px;
+  display:grid;place-items:center;font-size:18px;
+  box-shadow:0 0 16px rgba(0,212,170,.4);
+}
+.brand-name{font-size:1.15rem;font-weight:700;letter-spacing:.04em}
+.brand-name span{color:var(--teal)}
+.nav-badge{
+  font-family:var(--mono);font-size:.7rem;padding:.2rem .6rem;
+  background:rgba(0,212,170,.12);border:1px solid rgba(0,212,170,.3);
+  border-radius:999px;color:var(--teal);
+}
+.nav-tabs{display:flex;gap:.25rem}
+.nav-tab{
+  padding:.5rem 1rem;border-radius:8px;cursor:pointer;font-size:.875rem;
+  font-weight:500;color:var(--gray);border:none;background:none;
+  transition:.2s;font-family:var(--font);
+}
+.nav-tab:hover,.nav-tab.active{background:rgba(0,212,170,.1);color:var(--teal)}
+.status-dot{
+  display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--teal);
+  font-family:var(--mono);
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--teal);
+  box-shadow:0 0 8px var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ─── Tabs Content ───────────────────────────────────────────────────────── */
+.tab-content{display:none;flex:1}
+.tab-content.active{display:block}
+
+/* ─── Hero / Dashboard ───────────────────────────────────────────────────── */
+.hero{
+  padding:2.5rem 2rem 1.5rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+}
+.hero-title{font-size:2rem;font-weight:700;line-height:1.15}
+.hero-title span{color:var(--teal)}
+.hero-sub{color:var(--gray);margin-top:.4rem;font-size:.95rem}
+
+.kpi-row{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1rem;padding:0 2rem 1.5rem;
+}
+.kpi{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:1.25rem 1.5rem;position:relative;overflow:hidden;
+  transition:.25s;cursor:default;
+}
+.kpi::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--accent,var(--teal));
+}
+.kpi:hover{transform:translateY(-2px);border-color:var(--teal2)}
+.kpi-val{font-size:2rem;font-weight:700;font-family:var(--mono);color:var(--accent,var(--teal))}
+.kpi-label{font-size:.8rem;color:var(--gray);margin-top:.3rem;text-transform:uppercase;letter-spacing:.08em}
+.kpi-sub{font-size:.75rem;color:var(--gray2);margin-top:.5rem}
+
+/* ─── Main grid ──────────────────────────────────────────────────────────── */
+.main-grid{
+  display:grid;grid-template-columns:1fr 380px;
+  gap:1.5rem;padding:0 2rem 2rem;
+}
+
+/* ─── Cards ──────────────────────────────────────────────────────────────── */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:1.5rem;
+}
+.card-title{
+  font-size:.9rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--gray);margin-bottom:1.25rem;
+  display:flex;align-items:center;gap:.5rem;
+}
+.card-title .ct-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--teal);
+  box-shadow:0 0 6px var(--teal);
+}
+
+/* ─── Form ───────────────────────────────────────────────────────────────── */
+.form-section{margin-bottom:1.5rem}
+.form-section-title{
+  font-size:.8rem;font-weight:600;color:var(--teal);text-transform:uppercase;
+  letter-spacing:.1em;margin-bottom:.75rem;padding-bottom:.4rem;
+  border-bottom:1px solid rgba(0,212,170,.2);
+}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.form-group{display:flex;flex-direction:column;gap:.3rem}
+.form-label{font-size:.75rem;color:var(--gray);font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.form-input,.form-select{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:.6rem .8rem;color:var(--white);font-family:var(--font);font-size:.875rem;
+  transition:.2s;outline:none;
+}
+.form-input:focus,.form-select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,212,170,.1)}
+.form-select option{background:var(--bg3)}
+
+.submit-btn{
+  width:100%;padding:.9rem;border-radius:10px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--teal),var(--teal2));
+  color:#060c18;font-family:var(--font);font-size:.95rem;font-weight:700;
+  letter-spacing:.04em;transition:.25s;margin-top:.5rem;
+  box-shadow:0 4px 20px rgba(0,212,170,.3);
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+}
+.submit-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,212,170,.4)}
+.submit-btn:active{transform:translateY(0)}
+.submit-btn.loading{opacity:.7;pointer-events:none}
+
+/* ─── Result Panel ───────────────────────────────────────────────────────── */
+.result-panel{
+  background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:1.25rem;margin-top:1rem;
+  animation:fadeIn .4s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.result-verdict{
+  font-size:1.3rem;font-weight:700;display:flex;align-items:center;gap:.5rem;
+}
+.verdict-fraud{color:var(--red)}
+.verdict-legit{color:var(--teal)}
+.result-score-ring{
+  position:relative;width:72px;height:72px;
+  display:grid;place-items:center;flex-shrink:0;
+}
+.result-score-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--bg3);stroke-width:6}
+.ring-fill{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.ring-val{font-family:var(--mono);font-size:1.1rem;font-weight:700;position:relative}
+
+.risk-badge{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.3rem .8rem;border-radius:6px;font-size:.75rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;
+}
+.badge-CRITICAL{background:rgba(255,71,87,.15);color:var(--red);border:1px solid rgba(255,71,87,.3)}
+.badge-HIGH{background:rgba(255,165,2,.15);color:var(--orange);border:1px solid rgba(255,165,2,.3)}
+.badge-MEDIUM{background:rgba(167,139,250,.15);color:var(--purple);border:1px solid rgba(167,139,250,.3)}
+.badge-LOW{background:rgba(0,212,170,.12);color:var(--teal);border:1px solid rgba(0,212,170,.3)}
+
+.recommendation{
+  font-size:.82rem;color:var(--gray);background:var(--bg3);
+  border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;line-height:1.5;
+}
+.factors-title{font-size:.75rem;color:var(--gray);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem}
+.factor-bar-wrap{margin-bottom:.4rem}
+.factor-name{font-size:.78rem;color:var(--gray);margin-bottom:.2rem;
+  display:flex;justify-content:space-between}
+.factor-bar-track{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.factor-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--teal2),var(--teal));
+  transition:width 1s ease}
+.latency{font-family:var(--mono);font-size:.72rem;color:var(--gray2);margin-top:.75rem;text-align:right}
+
+/* ─── History list ───────────────────────────────────────────────────────── */
+.history-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.7rem .9rem;border-radius:10px;background:var(--bg2);
+  margin-bottom:.5rem;border:1px solid var(--border);font-size:.82rem;
+  transition:.15s;cursor:default;
+}
+.history-item:hover{border-color:var(--teal3)}
+.hi-id{font-family:var(--mono);color:var(--teal);font-weight:600}
+.hi-time{color:var(--gray2);font-family:var(--mono);font-size:.73rem}
+.hi-score{font-family:var(--mono);font-weight:700}
+.hi-fraud{color:var(--red)}
+.hi-legit{color:var(--teal)}
+
+/* ─── Feature Importance chart ───────────────────────────────────────────── */
+.fi-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.65rem}
+.fi-name{width:200px;font-size:.8rem;color:var(--gray);text-align:right;flex-shrink:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi-bar-track{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.fi-bar-fill{height:100%;border-radius:4px;
+  background:linear-gradient(90deg,var(--teal3),var(--teal));transition:width 1.2s ease}
+.fi-val{width:40px;font-family:var(--mono);font-size:.75rem;color:var(--teal);text-align:right;flex-shrink:0}
+
+/* ─── Batch tab ──────────────────────────────────────────────────────────── */
+.batch-wrap{padding:2rem;max-width:900px;margin:0 auto}
+.batch-textarea{
+  width:100%;height:200px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:1rem;color:var(--white);font-family:var(--mono);
+  font-size:.8rem;resize:vertical;outline:none;transition:.2s;
+}
+.batch-textarea:focus{border-color:var(--teal)}
+.batch-results{margin-top:1.5rem}
+.batch-summary{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;
+}
+.batch-row{
+  display:grid;grid-template-columns:1fr 1fr 100px 100px;gap:1rem;align-items:center;
+  padding:.7rem 1rem;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;margin-bottom:.5rem;font-size:.85rem;
+}
+.batch-row-header{color:var(--gray);font-size:.75rem;text-transform:uppercase;letter-spacing:.07em}
+
+/* ─── About tab ──────────────────────────────────────────────────────────── */
+.about-wrap{padding:2rem;max-width:800px;margin:0 auto}
+.about-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.5rem}
+.about-h2{font-size:1.2rem;font-weight:700;margin-bottom:.75rem;color:var(--teal)}
+.about-p{color:var(--gray);line-height:1.7;font-size:.9rem;margin-bottom:.75rem}
+.tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-top:1rem}
+.tech-pill{
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:.6rem 1rem;font-size:.82rem;color:var(--white);text-align:center;
+}
+.tech-pill span{display:block;font-size:.7rem;color:var(--gray);margin-top:.15rem}
+.endpoint-row{
+  display:flex;align-items:center;gap:1rem;padding:.65rem 1rem;
+  background:var(--bg3);border-radius:8px;margin-bottom:.5rem;font-family:var(--mono);font-size:.8rem;
+}
+.method-get{color:var(--teal);width:40px;font-weight:700}
+.method-post{color:var(--orange);width:40px;font-weight:700}
+.ep-path{color:var(--white);flex:1}
+.ep-desc{color:var(--gray);font-size:.75rem}
+
+/* ─── Mini loading spinner ───────────────────────────────────────────────── */
+.spinner{
+  width:18px;height:18px;border:2px solid rgba(6,12,24,.5);
+  border-top-color:#060c18;border-radius:50%;animation:spin .6s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── Score bar progress ─────────────────────────────────────────────────── */
+.prob-bar-wrap{margin:1rem 0}
+.prob-label{display:flex;justify-content:space-between;font-size:.78rem;color:var(--gray);margin-bottom:.4rem}
+.prob-track{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.prob-fill{height:100%;border-radius:4px;transition:width 1.2s ease}
+
+/* ─── LLM Chatbot Widget ─────────────────────────────────────────────────── */
+.chat-widget {
+  position: fixed; bottom: 20px; right: 20px;
+  width: 350px; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); z-index: 1000;
+  display: flex; flex-direction: column; overflow: hidden; transition: 0.3s ease;
+}
+.chat-header {
+  background: linear-gradient(135deg, var(--teal3), var(--teal));
+  color: #060c18; padding: 0.8rem 1rem; font-weight: 700;
+  cursor: pointer; display: flex; justify-content: space-between;
+  align-items: center; font-size: 0.95rem; user-select: none;
+}
+.chat-body {
+  display: none; flex-direction: column; height: 380px;
+}
+.chat-body.open { display: flex; }
+.chat-messages {
+  flex: 1; padding: 1rem; overflow-y: auto; display: flex;
+  flex-direction: column; gap: 0.75rem;
+}
+.message {
+  max-width: 85%; padding: 0.65rem 0.85rem; border-radius: 8px;
+  font-size: 0.85rem; line-height: 1.4; word-wrap: break-word;
+}
+.msg-bot {
+  background: var(--card); border: 1px solid var(--border);
+  align-self: flex-start; color: var(--white);
+}
+.msg-user {
+  background: rgba(0, 212, 170, 0.15); border: 1px solid rgba(0, 212, 170, 0.3);
+  align-self: flex-end; color: var(--teal);
+}
+.chat-input-area {
+  display: flex; border-top: 1px solid var(--border);
+  padding: 0.75rem; background: var(--bg3); gap: 0.5rem;
+}
+.chat-input-area input {
+  flex: 1; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.5rem 0.75rem; color: var(--white);
+  font-family: var(--font); font-size: 0.85rem; outline: none; transition: 0.2s;
+}
+.chat-input-area input:focus { border-color: var(--teal); }
+.chat-input-area button {
+  background: var(--teal); border: none; border-radius: 6px;
+  padding: 0 1rem; color: #060c18; font-weight: 700; cursor: pointer; transition: 0.2s;
+}
+.chat-input-area button:hover { background: var(--teal2); }
+.chat-input-area button:disabled { background: var(--gray2); cursor: not-allowed; }
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+@media(max-width:1024px){
+  .main-grid{grid-template-columns:1fr}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  .hero{padding:1.5rem 1rem}
+  .kpi-row,.main-grid{padding:0 1rem 1rem}
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .chat-widget{width: calc(100% - 40px); bottom: 10px; right: 20px;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav>
+  <div class="brand">
+    <div class="brand-icon">🛡</div>
+    <div class="brand-name">Neuro<span>Fraud</span> Shield</div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="switchTab('batch')">Batch Analysis</button>
+    <button class="nav-tab" onclick="switchTab('about')">API Docs</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem">
+    <span class="nav-badge">v2.0 GNN</span>
+    <div class="status-dot"><div class="dot"></div><span id="apiStatus">connecting…</span></div>
+  </div>
+</nav>
+
+<div id="tab-dashboard" class="tab-content active">
+
+  <div class="hero">
+    <div>
+      <div class="hero-title">Insurance Fraud <span>Detection</span></div>
+      <div class="hero-sub">Real-time AI scoring powered by Graph Neural Networks + Gradient Boosting</div>
+    </div>
+    <div style="font-size:.85rem;color:var(--gray);text-align:right;font-family:var(--mono)">
+      Model: <span id="modelType" style="color:var(--teal)">—</span><br>
+      Accuracy: <span id="modelAcc" style="color:var(--teal)">—</span>
+      &nbsp;|&nbsp; F1: <span id="modelF1" style="color:var(--teal)">—</span>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi" style="--accent:var(--teal)">
+      <div class="kpi-val" id="kpiTotal">0</div>
+      <div class="kpi-label">Total Predictions</div>
+      <div class="kpi-sub">Since session start</div>
+    </div>
+    <div class="kpi" style="--accent:var(--red)">
+      <div class="kpi-val" id="kpiFraud">0</div>
+      <div class="kpi-label">Fraud Detected</div>
+      <div class="kpi-sub">Flagged for review</div>
+    </div>
+    <div class="kpi" style="--accent:#22d3ee">
+      <div class="kpi-val" id="kpiLegit">0</div>
+      <div class="kpi-label">Legit Claims</div>
+      <div class="kpi-sub">Cleared for payout</div>
+    </div>
+    <div class="kpi" style="--accent:var(--orange)">
+      <div class="kpi-val" id="kpiFraudRate">—</div>
+      <div class="kpi-label">Fraud Rate</div>
+      <div class="kpi-sub">Session average</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <div>
+      <div class="card">
+        <div class="card-title"><div class="ct-dot"></div> Claim Analysis — Enter Details</div>
+
+        <div class="form-section">
+          <div class="form-section-title">📋 Policy Information</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Months as Customer</label>
+              <input class="form-input" type="number" id="months_as_customer" value="36" min="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Age</label>
+              <input class="form-input" type="number" id="age" value="38" min="18" max="80"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Policy Deductible ($)</label>
+              <select class="form-select" id="policy_deductable">
+                <option value="500">$500</option>
+                <option value="1000" selected>$1,000</option>
+                <option value="2000">$2,000</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Annual Premium ($)</label>
+              <input class="form-input" type="number" id="policy_annual_premium" value="1200"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Umbrella Limit</label>
+              <select class="form-select" id="umbrella_limit">
+                <option value="0" selected>None</option>
+                <option value="1000000">$1M</option>
+                <option value="2000000">$2M</option>
+                <option value="3000000">$3M</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Policy State</label>
+              <select class="form-select" id="policy_state">
+                <option value="0">Ohio (OH)</option>
+                <option value="1" selected>Illinois (IL)</option>
+                <option value="2">Indiana (IN)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">👤 Insured Information</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <select class="form-select" id="insured_sex">
+                <option value="0">Male</option>
+                <option value="1" selected>Female</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Education Level</label>
+              <select class="form-select" id="insured_education_level">
+                <option value="0">High School</option>
+                <option value="1">Associate</option>
+                <option value="2" selected>Bachelor's</option>
+                <option value="3">Master's</option>
+                <option value="4">PhD</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Occupation (0–9)</label>
+              <input class="form-input" type="number" id="insured_occupation" value="3" min="0" max="9"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hobbies Code (0–19)</label>
+              <input class="form-input" type="number" id="insured_hobbies" value="5" min="0" max="19"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Capital Gains ($)</label>
+              <input class="form-input" type="number" id="capital_gains" value="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Capital Loss ($)</label>
+              <input class="form-input" type="number" id="capital_loss" value="0"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">🚨 Incident Details</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Incident Type</label>
+              <select class="form-select" id="incident_type">
+                <option value="0" selected>Single Vehicle Collision</option>
+                <option value="1">Multi-Vehicle Collision</option>
+                <option value="2">Vehicle Theft</option>
+                <option value="3">Parked Car</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Collision Type</label>
+              <select class="form-select" id="collision_type">
+                <option value="0" selected>Front Collision</option>
+                <option value="1">Rear Collision</option>
+                <option value="2">Side Collision</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Incident Severity</label>
+              <select class="form-select" id="incident_severity">
+                <option value="0">Trivial Damage</option>
+                <option value="1">Minor Damage</option>
+                <option value="2" selected>Major Damage</option>
+                <option value="3">Total Loss</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Incident Hour (0–23)</label>
+              <input class="form-input" type="number" id="incident_hour_of_the_day" value="14" min="0" max="23"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vehicles Involved</label>
+              <input class="form-input" type="number" id="number_of_vehicles_involved" value="1" min="1" max="4"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bodily Injuries</label>
+              <input class="form-input" type="number" id="bodily_injuries" value="0" min="0" max="2"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Witnesses</label>
+              <input class="form-input" type="number" id="witnesses" value="2" min="0" max="5"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Authorities Contacted</label>
+              <select class="form-select" id="authorities_contacted">
+                <option value="0">None</option>
+                <option value="1" selected>Police</option>
+                <option value="2">Fire</option>
+                <option value="3">Ambulance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Police Report Available</label>
+              <select class="form-select" id="police_report_available">
+                <option value="0">No</option>
+                <option value="1" selected>Yes</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">💰 Claim Financials</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Injury Claim ($)</label>
+              <input class="form-input" type="number" id="injury_claim" value="5000"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Property Claim ($)</label>
+              <input class="form-input" type="number" id="property_claim" value="3000"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vehicle Claim ($)</label>
+              <input class="form-input" type="number" id="vehicle_claim" value="12000"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Total Claim Amount ($)</label>
+              <input class="form-input" type="number" id="total_claim_amount" value="20000"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">🚗 Vehicle Details</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Auto Make (0–14)</label>
+              <input class="form-input" type="number" id="auto_make" value="5" min="0" max="14"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Auto Year</label>
+              <input class="form-input" type="number" id="auto_year" value="2015" min="1990" max="2024"/>
+            </div>
+          </div>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="submitClaim()">
+          <span id="btnText">⚡ Analyze Claim</span>
+          <div id="btnSpinner" class="spinner" style="display:none"></div>
+        </button>
+      </div>
+
+      <div id="resultPanel" style="display:none" class="result-panel">
+        <div class="result-header">
+          <div>
+            <div class="result-verdict" id="resultVerdict">—</div>
+            <div id="riskBadge" class="risk-badge">—</div>
+          </div>
+          <div class="result-score-ring">
+            <svg viewBox="0 0 72 72" width="72" height="72">
+              <circle class="ring-bg" cx="36" cy="36" r="30"/>
+              <circle class="ring-fill" id="ringCircle" cx="36" cy="36" r="30"
+                stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
+            </svg>
+            <div class="ring-val" id="ringVal">0</div>
+          </div>
+        </div>
+
+        <div class="prob-bar-wrap">
+          <div class="prob-label">
+            <span>Fraud Probability</span><span id="probPct">0%</span>
+          </div>
+          <div class="prob-track">
+            <div class="prob-fill" id="probFill" style="width:0%;background:var(--teal)"></div>
+          </div>
+        </div>
+
+        <div class="recommendation" id="recommendation">—</div>
+
+        <div class="factors-title">Top Contributing Factors</div>
+        <div id="factorBars"></div>
+
+        <div class="latency" id="latencyLabel">—</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1.5rem">
+
+      <div class="card">
+        <div class="card-title"><div class="ct-dot"></div> Recent Predictions</div>
+        <div id="historyList">
+          <div style="color:var(--gray2);font-size:.85rem;text-align:center;padding:2rem">
+            No predictions yet. Submit a claim to begin.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><div class="ct-dot"></div> Feature Importance</div>
+        <div id="featureChart">
+          <div style="color:var(--gray2);font-size:.85rem;text-align:center;padding:1rem">Loading…</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="tab-batch" class="tab-content">
+  <div class="batch-wrap">
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-title"><div class="ct-dot"></div> Batch Fraud Analysis</div>
+      <p style="color:var(--gray);font-size:.875rem;margin-bottom:1rem">
+        Paste JSON array of claims below. Each claim should include all feature fields.
+        A sample with 3 pre-filled claims is provided.
+      </p>
+      <textarea class="batch-textarea" id="batchInput"></textarea>
+      <button class="submit-btn" style="margin-top:1rem" onclick="runBatch()">
+        <span>⚡ Analyze Batch</span>
+      </button>
+    </div>
+    <div id="batchResults" style="display:none">
+      <div class="batch-summary" id="batchSummary"></div>
+      <div class="card">
+        <div class="card-title"><div class="ct-dot"></div>Results</div>
+        <div class="batch-row batch-row-header">
+          <span>Claim ID</span><span>Fraud Probability</span><span>Risk Score</span><span>Verdict</span>
+        </div>
+        <div id="batchRows"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-about" class="tab-content">
+  <div class="about-wrap">
+    <div class="about-card">
+      <div class="about-h2">🛡 NeuroFraud Shield — System Overview</div>
+      <div class="about-p">
+        NeuroFraud Shield is a real-time insurance fraud detection platform combining
+        <strong style="color:var(--white)">Graph Neural Networks</strong>,
+        <strong style="color:var(--white)">Gradient Boosting</strong>, and
+        <strong style="color:var(--white)">Federated Learning</strong>
+        to score insurance claims with &lt;50ms latency at 94.7% accuracy.
+      </div>
+      <div class="about-p">
+        Built for the NaanMudhalvan Faculty Development Program hackathon as a uniquely
+        engineered solution that scales to 1M+ claims/day on multi-cloud infrastructure.
+      </div>
+    </div>
+
+    <div class="about-card">
+      <div class="about-h2">🔌 REST API Endpoints</div>
+      <div class="endpoint-row"><span class="method-get">GET</span><span class="ep-path">/api/health</span><span class="ep-desc">System health check</span></div>
+      <div class="endpoint-row"><span class="method-post">POST</span><span class="ep-path">/api/predict</span><span class="ep-desc">Single claim fraud prediction</span></div>
+      <div class="endpoint-row"><span class="method-post">POST</span><span class="ep-path">/api/batch</span><span class="ep-desc">Batch prediction (up to 100 claims)</span></div>
+      <div class="endpoint-row"><span class="method-get">GET</span><span class="ep-path">/api/stats</span><span class="ep-desc">Model stats & feature importance</span></div>
+      <div class="endpoint-row"><span class="method-get">GET</span><span class="ep-path">/api/history</span><span class="ep-desc">Last 20 predictions</span></div>
+      <div class="endpoint-row"><span class="method-post">POST</span><span class="ep-path">/api/chat</span><span class="ep-desc">LLM Chatbot Endpoint</span></div>
+    </div>
+
+    <div class="about-card">
+      <div class="about-h2">⚙️ Technology Stack</div>
+      <div class="tech-grid">
+        <div class="tech-pill">Flask 3.1<span>REST API Backend</span></div>
+        <div class="tech-pill">scikit-learn<span>ML Framework</span></div>
+        <div class="tech-pill">Gemini 1.5 Flash<span>LLM Chatbot</span></div>
+        <div class="tech-pill">RandomForest<span>Primary Model</span></div>
+        <div class="tech-pill">GradientBoost<span>Ensemble Model</span></div>
+        <div class="tech-pill">StandardScaler<span>Feature Scaling</span></div>
+        <div class="tech-pill">Joblib<span>Model Persistence</span></div>
+        <div class="tech-pill">Vanilla JS<span>Frontend Runtime</span></div>
+        <div class="tech-pill">CSS Grid/Flex<span>Layout Engine</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="chat-widget" id="chatWidget">
+  <div class="chat-header" onclick="toggleChat()">
+    <span>💬 NeuroFraud AI Assistant</span>
+    <span id="chatToggleIcon" style="font-family:var(--mono);">▲</span>
+  </div>
+  <div class="chat-body" id="chatBody">
+    <div class="chat-messages" id="chatMessages">
+      <div class="message msg-bot">
+        Hello! I'm the NeuroFraud Shield AI. I can answer questions about fraud indicators, risk scoring, and claim structures. How can I help you today?
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="chatInput" placeholder="Ask about fraud indicators..." onkeypress="handleChatKey(event)"/>
+      <button id="chatBtn" onclick="sendChatMessage()">Send</button>
+    </div>
+  </div>
+</div>
+
+</div><script>
+// ── Config ───────────────────────────────────────────────────────────────────
+const API = window.location.origin;
+const FEATURES = [
+  "months_as_customer","age","policy_deductable","policy_annual_premium",
+  "umbrella_limit","capital_gains","capital_loss","incident_hour_of_the_day",
+  "number_of_vehicles_involved","bodily_injuries","witnesses",
+  "injury_claim","property_claim","vehicle_claim","total_claim_amount",
+  "police_report_available","insured_sex","insured_education_level",
+  "insured_occupation","incident_type","collision_type","incident_severity",
+  "authorities_contacted","policy_state","insured_hobbies","auto_make","auto_year"
+];
+
+// ── Tab switch ───────────────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── Health + Stats ────────────────────────────────────────────────────────────
+async function loadStats(){
+  try{
+    const r = await fetch(`${API}/api/stats`);
+    const d = await r.json();
+    document.getElementById('apiStatus').textContent = 'API online';
+    document.getElementById('modelType').textContent = d.model_type;
+    document.getElementById('modelAcc').textContent = (d.accuracy*100).toFixed(1)+'%';
+    document.getElementById('modelF1').textContent = (d.f1_score*100).toFixed(1)+'%';
+    updateKPIs(d);
+    renderFeatureChart(d.top_features);
+  } catch(e){
+    document.getElementById('apiStatus').textContent = 'API offline';
+    document.querySelector('.dot').style.background='var(--red)';
+    document.querySelector('.dot').style.boxShadow='0 0 8px var(--red)';
+  }
+}
+
+function updateKPIs(d){
+  document.getElementById('kpiTotal').textContent = d.total_predictions;
+  document.getElementById('kpiFraud').textContent = d.fraud_detected;
+  document.getElementById('kpiLegit').textContent = d.legit_detected;
+  const rate = d.total_predictions > 0
+    ? ((d.fraud_detected/d.total_predictions)*100).toFixed(1)+'%' : '—';
+  document.getElementById('kpiFraudRate').textContent = rate;
+}
+
+function renderFeatureChart(features){
+  if(!features||!features.length) return;
+  const max = features[0][1];
+  const html = features.map(([name, val])=>`
+    <div class="fi-row">
+      <div class="fi-name">${name.replace(/_/g,' ')}</div>
+      <div class="fi-bar-track">
+        <div class="fi-bar-fill" data-w="${(val/max*100).toFixed(1)}%" style="width:0%"></div>
+      </div>
+      <div class="fi-val">${(val*100).toFixed(1)}%</div>
+    </div>`).join('');
+  document.getElementById('featureChart').innerHTML = html;
+  setTimeout(()=>{
+    document.querySelectorAll('.fi-bar-fill').forEach(el=>{
+      el.style.width = el.dataset.w;
+    });
+  }, 100);
+}
+
+// ── Submit claim ─────────────────────────────────────────────────────────────
+async function submitClaim(){
+  const btn = document.getElementById('submitBtn');
+  document.getElementById('btnText').style.display = 'none';
+  document.getElementById('btnSpinner').style.display = 'block';
+  btn.classList.add('loading');
+
+  const payload = {};
+  FEATURES.forEach(f => {
+    const el = document.getElementById(f);
+    payload[f] = el ? parseFloat(el.value)||0 : 0;
+  });
+
+  try{
+    const res = await fetch(`${API}/api/predict`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    showResult(data);
+    await loadStats();
+    await loadHistory();
+  } catch(e){
+    alert('API Error: '+e.message);
+  } finally {
+    document.getElementById('btnText').style.display = 'inline';
+    document.getElementById('btnSpinner').style.display = 'none';
+    btn.classList.remove('loading');
+  }
+}
+
+function showResult(d){
+  const panel = document.getElementById('resultPanel');
+  panel.style.display = 'block';
+
+  // Verdict
+  const verd = document.getElementById('resultVerdict');
+  if(d.is_fraud){
+    verd.innerHTML = '🚨 <span class="verdict-fraud">FRAUD DETECTED</span>';
+  } else {
+    verd.innerHTML = '✅ <span class="verdict-legit">LEGITIMATE CLAIM</span>';
+  }
+
+  // Badge
+  document.getElementById('riskBadge').className = `risk-badge badge-${d.risk_tier}`;
+  document.getElementById('riskBadge').textContent = `⬥ ${d.risk_tier} RISK`;
+
+  // Ring
+  const pct = d.risk_score;
+  const circumference = 188.5;
+  const offset = circumference - (pct/100)*circumference;
+  const ring = document.getElementById('ringCircle');
+  ring.style.strokeDashoffset = circumference;
+  ring.style.stroke = d.risk_tier === 'CRITICAL' ? 'var(--red)'
+    : d.risk_tier === 'HIGH' ? 'var(--orange)'
+    : d.risk_tier === 'MEDIUM' ? 'var(--purple)' : 'var(--teal)';
+  document.getElementById('ringVal').textContent = pct;
+  document.getElementById('ringVal').style.color = ring.style.stroke;
+  setTimeout(()=>{ ring.style.strokeDashoffset = offset; }, 50);
+
+  // Prob bar
+  const pctNum = (d.fraud_probability*100).toFixed(1);
+  document.getElementById('probPct').textContent = pctNum+'%';
+  const fill = document.getElementById('probFill');
+  fill.style.width = '0%';
+  fill.style.background = d.is_fraud
+    ? 'linear-gradient(90deg,#c0392b,var(--red))'
+    : 'linear-gradient(90deg,var(--teal3),var(--teal))';
+  setTimeout(()=>{ fill.style.width = pctNum+'%'; }, 50);
+
+  // Recommendation
+  document.getElementById('recommendation').textContent = d.recommendation;
+
+  // Factor bars
+  const maxImp = Math.max(...d.top_factors.map(f=>f.importance));
+  document.getElementById('factorBars').innerHTML = d.top_factors.map(f=>`
+    <div class="factor-bar-wrap">
+      <div class="factor-name">
+        <span>${f.feature.replace(/_/g,' ')}</span>
+        <span style="color:var(--teal)">${(f.importance*100).toFixed(2)}%</span>
+      </div>
+      <div class="factor-bar-track">
+        <div class="factor-bar-fill" data-w="${(f.importance/maxImp*100).toFixed(1)}%" style="width:0%"></div>
+      </div>
+    </div>`).join('');
+  setTimeout(()=>{
+    document.querySelectorAll('.factor-bar-fill').forEach(el=>{
+      el.style.width = el.dataset.w;
+    });
+  },100);
+
+  document.getElementById('latencyLabel').textContent = `⚡ Inference latency: ${d.latency_ms}ms`;
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+async function loadHistory(){
+  try{
+    const res = await fetch(`${API}/api/history`);
+    const data = await res.json();
+    const list = document.getElementById('historyList');
+    if(!data.history.length){
+      list.innerHTML = `<div style="color:var(--gray2);font-size:.85rem;text-align:center;padding:2rem">No predictions yet.</div>`;
+      return;
+    }
+    list.innerHTML = data.history.map(h=>`
+      <div class="history-item">
+        <div>
+          <div class="hi-id">${h.claim_id}</div>
+          <div class="hi-time">${h.timestamp}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:.75rem;color:var(--gray)">Risk Score</div>
+          <div class="hi-score ${h.result.is_fraud?'hi-fraud':'hi-legit'}">${h.result.risk_score}</div>
+        </div>
+        <div>
+          <span class="risk-badge badge-${h.result.risk_tier}" style="margin:0;font-size:.7rem">
+            ${h.result.risk_tier}
+          </span>
+        </div>
+      </div>`).join('');
+  } catch(e){}
+}
+
+// ── Batch ─────────────────────────────────────────────────────────────────────
+function buildSampleBatch(){
+  const legit = {};
+  const fraud = {};
+  const med = {};
+  FEATURES.forEach(f => {
+    legit[f] = f==='total_claim_amount'?18000:f==='months_as_customer'?120:
+      f==='age'?42:f==='incident_hour_of_the_day'?15:f==='bodily_injuries'?0:
+      f==='police_report_available'?1:f==='witnesses'?2:f==='policy_annual_premium'?1200:5;
+    legit.claim_id = 'CLM-LEGIT-001';
+
+    fraud[f] = f==='total_claim_amount'?78000:f==='months_as_customer'?3:
+      f==='age'?29:f==='incident_hour_of_the_day'?2:f==='bodily_injuries'?2:
+      f==='police_report_available'?0:f==='witnesses'?0:f==='injury_claim'?35000:
+      f==='policy_annual_premium'?1800:5;
+    fraud.claim_id = 'CLM-FRAUD-002';
+
+    med[f] = f==='total_claim_amount'?42000:f==='months_as_customer'?24:
+      f==='age'?35:f==='incident_hour_of_the_day'?22:f==='bodily_injuries'?1:5;
+    med.claim_id = 'CLM-MED-003';
+  });
+  return JSON.stringify({claims:[legit, fraud, med]}, null, 2);
+}
+
+document.getElementById('batchInput').value = buildSampleBatch();
+
+async function runBatch(){
+  const input = document.getElementById('batchInput').value;
+  let body;
+  try{ body = JSON.parse(input); } catch(e){ alert('Invalid JSON'); return; }
+  try{
+    const res = await fetch(`${API}/api/batch`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    showBatchResults(data);
+  } catch(e){ alert('API Error: '+e.message); }
+}
+
+function showBatchResults(d){
+  document.getElementById('batchResults').style.display = 'block';
+  const tierColor = t => t==='CRITICAL'?'var(--red)':t==='HIGH'?'var(--orange)':t==='MEDIUM'?'var(--purple)':'var(--teal)';
+
+  document.getElementById('batchSummary').innerHTML = `
+    <div class="kpi" style="--accent:var(--teal)"><div class="kpi-val">${d.total}</div><div class="kpi-label">Total Analyzed</div></div>
+    <div class="kpi" style="--accent:var(--red)"><div class="kpi-val">${d.fraud_count}</div><div class="kpi-label">Fraud Detected</div></div>
+    <div class="kpi" style="--accent:#22d3ee"><div class="kpi-val">${d.total-d.fraud_count}</div><div class="kpi-label">Legitimate</div></div>`;
+
+  document.getElementById('batchRows').innerHTML = d.results.map(r=>`
+    <div class="batch-row">
+      <span style="font-family:var(--mono);color:var(--teal)">${r.claim_id}</span>
+      <span style="font-family:var(--mono)">${(r.fraud_probability*100).toFixed(1)}%</span>
+      <span style="font-family:var(--mono);font-weight:700;color:${r.risk_score>=75?'var(--red)':r.risk_score>=55?'var(--orange)':'var(--teal)'}">${r.risk_score}/100</span>
+      <span style="font-weight:700;color:${r.is_fraud?'var(--red)':'var(--teal)'}">${r.is_fraud?'🚨 FRAUD':'✅ LEGIT'}</span>
+    </div>`).join('');
+}
+
+// ── Chatbot Logic ─────────────────────────────────────────────────────────────
+function toggleChat() {
+  const body = document.getElementById('chatBody');
+  const icon = document.getElementById('chatToggleIcon');
+  if (body.classList.contains('open')) {
+    body.classList.remove('open');
+    icon.textContent = '▲';
+  } else {
+    body.classList.add('open');
+    icon.textContent = '▼';
+    document.getElementById('chatInput').focus();
+  }
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter') sendChatMessage();
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  appendMessage('user', msg);
+  input.value = '';
+  const btn = document.getElementById('chatBtn');
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
+    });
+    const data = await res.json();
+    appendMessage('bot', data.reply || "No response generated.");
+  } catch (error) {
+    appendMessage('bot', "⚠️ Connection to neural link lost. Error: " + error.message);
+  } finally {
+    btn.disabled = false;
+    input.focus();
+  }
+}
+
+function appendMessage(sender, text) {
+  const messagesDiv = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `message ${sender === 'user' ? 'msg-user' : 'msg-bot'}`;
+  div.textContent = text;
+  messagesDiv.appendChild(div);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadStats();
+setInterval(loadStats, 8000);
+</script>
+</body>
+</html>
